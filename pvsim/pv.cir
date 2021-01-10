@@ -1,0 +1,16 @@
+* Simulation of pv cell
+*
+.tran 0.01ms 5ms uic
+.include pv.net
+
+.control
+run
+alter rs 0.3
+run
+alter rs 0.6
+run
+setplot tran1
+set color0 = white
+set color1 = black
+plot i(vo) vs nvo tran2.i(vo) vs nvo tran3.i(vo) vs nvo
+.endc
