@@ -1,0 +1,12 @@
+* Title: Simple attenuator circuit
+
+* Netlist
+V1 a 0 60V
+R1 a b 20
+R2 b 0 10
+
+* Control
+.control
+* print v(a) v(b) v(a, b) i(v1)
+print all
+.endc

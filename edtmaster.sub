@@ -1,0 +1,341 @@
+*Library of SPICE models for components 
+*from Umanand L
+*DESE, Indian Institute of Science
+*Bangalore-560012
+*$
+*----------------------------------------------------------------
+* Bondgraph two port devices
+*------------------------------------------------------------------
+*CKTBDG
+*    pins   1  2   3  4
+.SUBCKT cktbdg np np0 ns ns0
+Rps  np ns 0.001
+Rps0 np0 ns0 0.001
+.ENDS
+*GY
+*       pins  1  2  3  4
+.SUBCKT gy np np0 ns ns0 N=1
+rp1 np nrp 0.1
+rs1 ns nrs 0.1
+rpmid nrp nrpmid 0.1
+rsmid nrs nrsmid 0.1
+BGp1 nrpmid npmid V=(-1)*i(vs1)*{N}
+BGs1 nrsmid nsmid V=i(vp1)*{N}
+vp1 npmid np0 0
+vs1 nsmid ns0 0
+BHs1 nrs nrsmid I=(-1)*v(nrp,np0)/{N}
+BHp1 nrp nrpmid I=v(nrs,ns0)/{N}
+*Uncomment and give 1% permeance value to include leakage effects
+*Clp nrp np0 100nF
+*Cls nrs ns0 100nF
+rsp1 nrp nrs 100e6
+rsm1 np0 ns0 100e6
+.ENDS
+
+*TF
+*    pins   1  2   3  4
+.SUBCKT tf np np0 ns ns0 N=1
+xGYp np np0 n1 n10 gy N={1}
+xGYs n1 n10 ns ns0 gy N={N}
+.ENDS
+
+*mGY
+*       pins  1  2  3  4
+.SUBCKT mgy np np0 ns ns0 nm
+rp1 np nrp 0.1
+rs1 ns nrs 0.1
+rpmid nrp nrpmid 0.1
+rsmid nrs nrsmid 0.1
+BGp1 nrpmid npmid V=(-1)*i(vs1)*{v(nm)}
+BGs1 nrsmid nsmid V=i(vp1)*{v(nm)}
+vp1 npmid np0 0
+vs1 nsmid ns0 0
+BHs1 nrs nrsmid I=(-1)*v(nrp,np0)/{v(nm)}
+BHp1 nrp nrpmid I=v(nrs,ns0)/{v(nm)}
+*Uncomment and give 1% permeance value to include leakage effects
+*Clp nrp np0 100nF
+*Cls nrs ns0 100nF
+rsp1 nrp nrs 100e6
+rsm1 np0 ns0 100e6
+.ENDS
+
+*mTF
+*    pins   1  2   3  4
+.SUBCKT mtf np np0 ns ns0 nm
+vone nt 0 1
+xGYp np np0 n1 n10 nt mgy
+xGYs n1 n10 ns ns0 nm mgy
+.ENDS
+
+*Electro-Magnetic Transformer
+*    pins   1  2   3  4
+.SUBCKT xfmer np np0 ns ns0 Np=1 Ns=1 C=100uF
+xGYp np np0 n1 n10 gy N={Np}
+xGYs n2 n10 ns ns0 gy N={Ns}
+*                IF Vc  < fsat   THEN {Cper} ELSE  {reducing Cper}
+Cper n1 n2 c='v(n1)-v(n2) < {5} ? {C} : {0.99*C*exp(-10*(v(n1)-v(n2)))+0.01*C}'
+.ENDS
+
+*FORWARD Xfm
+*       pins  1  2  3  4   5  6
+.SUBCKT xfmfor np np0 nd nd0 ns ns0 Np=1 Nd=1 Ns=1 C=100uF
+xGYp np np0 n1 n10 gy N={Np}
+xGYd n1 n30 nd nd0 gy N={Nd}
+xGYs n2 n10 ns ns0 gy N={Ns}
+*                IF Vc  < fsat   THEN {Cper} ELSE  {reducing Cper}
+Cper n30 n2 c='v(n30)-v(n2) < {5} ? {C} : {0.99*C*exp(-10*(v(n30)-v(n2)))+0.01*C}'
+.ENDS
+
+*PUSHPULL Xfm
+*       pins     1   2   3   4   5  6
+.SUBCKT xfmpush np1 npc np2 ns1 nsc ns2 Np=1 Ns=1 C=100uF
+xGYp1 np1 npc n1 n10 gy N={Np}
+xGYp2 npc np2 n10 n2 gy N={Np}
+xGYs1 n3 n30 ns1 nsc gy N={Ns}
+xGYs2 n30 n2 nsc ns2 gy N={Ns}
+*                IF Vc  < fsat   THEN {Cper} ELSE  {reducing Cper}
+Cper n1 n3 c='v(n1)-v(n3) < {5} ? {C} : {0.99*C*exp(-10*(v(n1)-v(n3)))+0.01*C}'
+.ENDS
+
+*BRIDGE Xfm
+*       pins     1   2   3   4   5
+.SUBCKT xfmbdge np1 np2 ns1 nsc ns2 Np=1 Ns=1 C=100uF
+xGYp  np1 np2 n1 n10 gy N={Np}
+xGYs1 n3 n30 ns1 nsc gy N={Ns}
+xGYs2 n30 n10 nsc ns2 gy N={Ns}
+*                IF Vc  < fsat   THEN {Cper} ELSE  {reducing Cper}
+Cper n1 n3 c='v(n1)-v(n3) < {5} ? {C} : {0.99*C*exp(-10*(v(n1)-v(n3)))+0.01*C}'
+.ENDS
+
+*MULTI-OUTPUT FLYBACK
+*    pins       1  2   3   4    5    6   7   8  
+.SUBCKT xfmfly np np0 ns1 ns10 ns2 ns20 ns3 ns30 Np=1 Ns1=1 Ns2=1 Ns3=1 C=100uF
+xGYp np np0 n1 n10 gy N={Np}
+xGYs1 n2 n20 ns1 ns10 gy N={Ns1}
+xGYs2 n20 n30 ns2 ns20 gy N={Ns2}
+xGYs3 n30 n10 ns3 ns30 gy N={Ns3}
+*                IF Vc  < fsat   THEN {Cper} ELSE  {reducing Cper}
+Cper n1 n2 c='v(n1)-v(n2) < {5} ? {C} : {0.99*C*exp(-10*(v(n1)-v(n2)))+0.01*C}'de
+.ENDS
+
+*****************************************************************************
+* BJT
+*****************************************************************************
+.model Qmod  NPN()
+.model Qmodp  PNP()
+*--------------------------
+*****************************************************************************
+* Diodes
+*****************************************************************************
+.model Def  D()
+.model Defz  D(bv=6.2)
+*--------------------------
+*Diode macro model
+.SUBCKT diode_power 101 102
+DX    101 102   def_power_diode
+Rsh   102 103   10000.0
+Csh   103 101   0.01uF
+.model  def_power_diode  D(RS=0.01, CJO=100pF)
+.ENDS
+*$
+*-------------------------------------------------
+.model switch SW( RON=0.001 )
+*$
+*-------------------------------------------------
+.SUBCKT  power_sw  nSp  nSn  nVcp 
+SW      nSp  nDb  nVcp  0  bidir_sw
+Dblock  nDb  nSn  d_switch
+Dbody   nSn  nSp  d_switch
+.model  bidir_sw  SW( RON=0.001 )
+.model  d_switch  D()
+.ENDS
+*$
+*------------------------------------------------------------------------------
+*-------ACCUMULATOR or LIMITED INTEGRATOR-----------------------
+.SUBCKT acc nin nVo K=1 lsat=-15.0 usat=15.0
+aint nin nVo limited_int
+.model limited_int int(gain={K} out_lower_limit={lsat} out_upper_limit={usat})
+.ENDS
+*------------------------------------------------------------------------------
+.SUBCKT samplehold nin nVclk nVo clkinvert=0 Kth=-0.9
+Vth nt 0 {Kth}
+Vflg nf 0 {clkinvert}
+Bclk nclk 0 V=(v(nf) > 0) ? (v(nVclk)-v(nt)) : (v(nt)-v(nVclk))
+Bin nvin 0 V=v(nin)
+Rsh nvin nsw 33
+SW1 nsw nVc nclk 0 switch
+Cs nVc 0 200nF
+Bout nVo 0 V= v(nVc) 
+.ENDS
+*------------------------------------------------------------------------------
+.SUBCKT PID nerr nVc Ki=1 Kp=1 Kd=0 lsat=-1.0 usat=1.0
+aint nerr ni pid_int
+.model pid_int int(gain={Ki} out_lower_limit={lsat} out_upper_limit={usat})
+
+adif nerr nd pid_dif
+.model pid_dif d_dt(gain={Kd} out_lower_limit={lsat} out_upper_limit={usat})
+
+asigma [nerr ni nd] nVsum pid_sum
+.model pid_sum summer(in_gain =[{Kp} 1.0 1.0])
+
+apidlimit nVsum nVc  control_limit
+.model control_limit limit(out_lower_limit={lsat} out_upper_limit={usat})
+.ENDS
+*-----------------------------------------------------------------------------
+.SUBCKT PWMtri nPin nPout fs=10000
+atri nPin nPtri triout
+.model triout triangle(cntl_array=[0 1] freq_array=[{fs} {fs}] out_low = -1.0 out_high = 1.0 duty_cycle = 0.5)
+acompare [nPin nPtri] ncout comp_sum
+.model comp_sum summer(in_gain=[1.0 -1.0])
+alim ncout nPout limit_comp
+.model limit_comp limit(gain=1e6 out_lower_limit=0.0 out_upper_limit=1.0 fraction=FALSE)
+.ENDS
+
+*-------------------------------------------------
+.SUBCKT PWMbridge nPin nArm1T nArm1B nArm2T nArm2B fs=10000
+atri1 nPin nPtri1 triout1
+.model triout1 triangle(cntl_array=[0 1] freq_array=[{fs} {fs}] out_low = -1.0 out_high = 1.0 duty_cycle = 0.5)
+ainv nPin nPinv amp
+.model amp gain(gain=-1.0)
+acompare1 [nPin nPtri1] ncout1 comp_sum
+acompare2 [nPtri1 nPinv] ncout2 comp_sum
+.model comp_sum summer(in_gain=[1.0 -1.0])
+alim1 ncout1 nArm1T limit_comp
+alim2 ncout2 nArm1B limit_comp
+alim3 ncout2 nArm2T limit_comp
+alim4 ncout1 nArm2B limit_comp
+.model limit_comp limit(gain=1e6 out_lower_limit=0.0 out_upper_limit=1.0 fraction=FALSE)
+.ENDS
+*$
+*------------------------------------------------------
+.SUBCKT SCR 101 103 T=20ms TDLY=1ms ICGATE=0V
+SW      101 102  53 0 SWITCH
+VSENSE  102 103  0V
+RSNUB   101 104  200
+CSNUB   104 103  1uF
+VGATE   51  0  PULSE(0 1V {TDLY} 0 0 ({T}/40) {T})
+RGATE   51  0  1MEG
+EGATE   52  0  TABLE {I(VSENSE)+V(51)} = (0.0,0.0) (0.1,1.0) (1.0,1.0)
+RSER    52  53 1
+CSER    53  0  1uF  IC={ICGATE}
+.MODEL  SWITCH SW( RON=0.01 )
+.ENDS
+*-----------------------------------------------------------------------
+.SUBCKT sum np nm nout
+asum [np nm] nout sum_err
+.model sum_err summer(in_gain=[1.0 -1.0])
+.ENDS
+*-------------------------------------------
+.SUBCKT add np nm nout
+asum [np nm] nout sum_err
+.model sum_err summer(in_gain=[1.0 1.0])
+.ENDS
+*-------------------------------------------
+.SUBCKT mul nm1 nm2 nout
+amul [nm1 nm2] nout sigmult
+.model sigmult mult(in_offset=[0 0] in_gain=[1.0 1.0] out_gain=1.0 out_offset=0)
+.ENDS
+*-------------------------------------------
+.SUBCKT gain nVi nVo K=1
+again nVi nVo amp
+.model amp gain(gain ={K})
+.ENDS
+*-------------------------------------------
+.SUBCKT TrFn nVi nVo K=1 num=1 den={1 0}
+atrfn nVi nVo transferfn
+.model transferfn s_xfer(gain ={K} int_ic=[0 0] num_coeff=[{num}] den_coeff=[{den}])
+.ENDS
+*-----------------------------------------------------------------------------
+.SUBCKT clock nclk fc=10000 duty=0.5 phase=0
+venable nen 0 1
+aclock nen nclkd varclock
+.model varclock d_osc(cntl_array = [0 1]
++                      freq_array = [{fc} {fc}]
++                      duty_cycle = {duty} init_phase={phase})
+adac [nclkd] [nclk] dac_buff
+.model dac_buff dac_bridge(out_low = 0.0 out_high = 1.0)
+.ENDS
+*-----------------------------------------------------------------------
+*              S    R    Q
+.SUBCKT SR_FF nset nrst nq
+asat1 nset nsetsat schmitff
+asat2 nrst nrstsat schmitff
+.model schmitff limit(gain=1e6 out_lower_limit=0 out_upper_limit=1.0)
+venable nena 0 1
+a_adc1 [nsetsat] [nsetd] adc_buff
+a_adc2 [nrstsat] [nrstd] adc_buff
+a_adc3 [nena] [nend] adc_buff
+.model adc_buff adc_bridge(in_low = 0.5 in_high = 0.5)
+alatch nsetd nrstd nend "null" "null" nqd nqbar latchsr
+.model latchsr d_srlatch
+adac [nqd] [nq] dac_buff
+.model dac_buff dac_bridge(out_low = 0.0 out_high = 1.0)
+.ENDS
+*-----------------------------------------------------------------------
+*             CLK Q
+.SUBCKT T_FF nclk nq
+asat2 nclk nclksat schmitff
+.model schmitff limit(gain=1e6 out_lower_limit=0 out_upper_limit=1.0)
+vtoginput ntoga 0 1
+a_adc1 [nclksat] [nclkd] adc_buff
+a_adc2 [ntoga] [ntogd] adc_buff
+.model adc_buff adc_bridge(in_low = 0.5 in_high = 0.5)
+atff ntogd nclkd "null" "null" nqd nqbar toggleff
+.model toggleff d_tff
+adac [nqd] [nq] dac_buff
+.model dac_buff dac_bridge(out_low = 0.0 out_high = 1.0)
+.ENDS
+*-------------------------------------------
+.SUBCKT EX_OR na nb nq
+asat1 na nasat schmitff
+asat2 nb nbsat schmitff
+.model schmitff limit(gain=1e6 out_lower_limit=0 out_upper_limit=1.0)
+a_adc1 [nasat] [nad] adc_buff
+a_adc2 [nbsat] [nbd] adc_buff
+.model adc_buff adc_bridge(in_low = 0.5 in_high = 0.5)
+axor [nad nbd] nqd xor3
+.model xor3 d_xor(rise_delay = 0.5e-9 fall_delay = 0.3e-9 input_load = 0.5e-12)
+adac [nqd] [nq] dac_buff
+.model dac_buff dac_bridge(out_low = 1.0 out_high = -1.0)
+.ENDS
+*-----------------------------------------------------------------
+* OP AMPs
+*-----------------------------------------------------------------
+* connections:   non-inverting input
+*                | inverting input
+*                | | positive power supply
+*                | | | negative power supply
+*                | | | | output
+*                | | | | |
+.SUBCKT OPAMP    1 2 3 4 5
+*opamp is considered as a compare, with pi controller
+Bvref nref 0 V=v(1)
+Bvfb nfb 0 V=v(2)
+Bverr nerr 0 V=v(nref)-v(nfb)
+Bic 0 nic i=v(nerr)
+Ccontrol nic 0 1uF
+Bir 0 nir i=v(nerr)
+Rcontrol nir 0 1e6
+Vigain nig 0 10
+BVc nc 0 V=v(nic)*v(nig)+v(nir)
+Blimit 5 0 V=v(nc) < v(4) ? v(4) : v(nc) > v(3) ? v(3) : v(nc)
+.ENDS
+*--------------------------------------------------------------------------------
+*-----------------------------------------------------------------
+* PV SOURCE
+*-----------------------------------------------------------------
+* connections:   +ve terminal
+*                | -ve terminal
+*                | | 
+.SUBCKT PVSOURCE 1 2 Isc=1 Vscale=50
+*Setting Isc value
+VIsc nsc 0 {Isc}
+*Setting No. of devices in series 
+Vnum ndev 0 {Vscale}
+*Using PV model eqn. in B-source
+*(nVT)=0.05 -- n=2 and VT=0.025
+*a conditional statement is used. If current flow is negative i.e. PV as sink, then the 
+*current should get limited to 0 and not allow sink current into PV
+Bpv 1 2 i=-(v(nsc)- 1e-7*(exp(v(1,2)/0.05/v(ndev))-1)>0 ? (v(nsc)- 1e-7*(exp(v(1,2)/0.05/v(ndev))-1)) : 0)
+.ENDS
+*--------------------------------------------------------------------------------

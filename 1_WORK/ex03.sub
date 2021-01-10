@@ -1,0 +1,11 @@
+* Model
+.model dmodel D()
+
+*Diode macro model
+.SUBCKT diode_power 101 102
+DX    101 102   def_power_diode
+Rsh   102 103   10000.0
+Csh   103 101   0.01uF
+.model  def_power_diode  D(RS=0.01, CJO=100pF)
+.ENDS
+

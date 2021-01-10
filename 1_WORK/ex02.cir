@@ -1,0 +1,14 @@
+* Title: Half wave rectifier
+* Analysis: Transient analysis
+.tran 1us 40ms uic
+
+.include ex02.net
+
+* Control
+.control
+run
+set color0=white ; set background colour as white
+set color1=black ; set foreground colour as black
+plot v(a) v(b)
+* plot all
+.endc
